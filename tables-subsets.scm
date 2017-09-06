@@ -1,4 +1,5 @@
 (load "mk/mk.scm")
+(load "mk/test-check.scm")
 
 ;; version that uses explicit subsetness
 
