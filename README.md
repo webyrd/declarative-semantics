@@ -2,7 +2,7 @@
 
 miniKanren prototype of ['Declarative semantics for functional languages: compositional, extensional, and elementary'](https://arxiv.org/abs/1707.03762) by Jeremy Siek.
 
-Code written by Ramana Kumar and Will Byrd, after discussion with Jeremy Siek.
+Code written by Ramana Kumar, Tim Zakian, and Will Byrd, after discussion with Jeremy Siek.
 
 The code implements the interesting parts of Figure 2 on page 7 of the paper.  See the tests in `tables-subsets.scm` for an idea of what the queries and answers look like.
 
