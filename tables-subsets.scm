@@ -110,61 +110,82 @@
         ((== y x) (== v t))
         ((=/= y x) (lookupo x rest t))))))
 
-#!eof
 
-> (run* (q) (subseto '(1 2) '(1 2 3)))
-((_.0))
-> (run* (q) (subseto '(1 2) '(0 1 2 3)))
-((_.0))
-> (run* (q) (subseto '(1 2) '(0 () 1 2 3)))
-((_.0))
-> (run* (q) (subseto '(() 1 2) '(0 () 1 2 3)))
-((_.0))
-> (run* (q) (subseto '(() 1 2) '(() 0 1 2 3)))
-((_.0))
-> (run* (q) (subseto '( 1 () 2) '(() 0 1 2 3)))
-()
-> (run* (q) (subseto '(1 () 2) '(() 0 1 2 3)))
-()
+;;; tests
+
+(test 'subseto-1
+  (run* (q) (subseto '(1 2) '(1 2 3)))
+  '((_.0)))
+
+(test 'subseto-2
+  (run* (q) (subseto '(1 2) '(0 1 2 3)))
+  '((_.0)))
+
+(test 'subseto-3
+  (run* (q) (subseto '(1 2) '(0 () 1 2 3)))
+  '((_.0)))
+
+(test 'subseto-4
+  (run* (q) (subseto '(() 1 2) '(0 () 1 2 3)))
+  '((_.0)))
+
+(test 'subseto-5
+  (run* (q) (subseto '(() 1 2) '(() 0 1 2 3)))
+  '((_.0)))
+
+(test 'subseto-6
+  (run* (q) (subseto '( 1 () 2) '(() 0 1 2 3)))
+  '())
+
+(test 'subseto-7
+  (run* (q) (subseto '(1 () 2) '(() 0 1 2 3)))
+  '())
+
+(test 'subseto-8
+  (run* (q) (subseto '() q))
+  '((()) ((_.0 . _.1))))
+
+(test 'subset-9
+  (run* (q) (subseto q '()))
+  '((())))
+
+(test 'evalo-1
+  (run 1 (q) (evalo 'x q))
+  '())
+
+(test 'evalo-2
+  (run* (q) (evalo '1 q))
+  '((1)))
+
+(test 'evalo-3
+  (run 1 (q) (evalo '((lambda (x) 2) 1) q))
+  '((2)))
+
+(test 'evalo-4
+  (run 10 (q) (evalo '((lambda (x) 2) 1) q))
+  ;; tabling or lazy constraints may allow this to be one answer
+  '((2) (2) (2) (2) (2) (2) (2) (2) (2) (2)))
+
+(test 'evalo-5
+  (run 10 (q) (evalo '((lambda (x) x) 1) q))
+  '((1) (1) (1) (1) (1) (1) (1) (1) (1) (1)))
+
+(test 'evalo-6
+  (run 10 (q) (evalo '(lambda (x) x) q))
+  '((())
+    (((_.0 . _.0)) (num _.0))
+    (((())))
+    (((_.0 . _.0) (_.1 . _.1)) (num _.0 _.1))
+    ((((_.0 . _.1))))
+    (((_.0 . _.0) (())) (num _.0))
+    ((((_.0 . _.1) _.0 . _.1)) (num _.1))
+    (((()) (_.0 . _.0)) (num _.0))
+    (((_.0 . _.0) (_.1 . _.1) (_.2 . _.2)) (num _.0 _.1 _.2))
+    (((_.0 . _.0) ((_.1 . _.2))) (num _.0))))
 
 
-(run* (q) (subseto '() q))
-=>
-((()) ((_.0 . _.1)))
 
-(run* (q) (subseto q '()))
-=>
-((()))
-
-(run 1 (q) (evalo 'x q))
-=>
-()
-
-(run* (q) (evalo '1 q))
-=>
-((1))
-
-(run 1 (q) (evalo '((lambda (x) 2) 1) q))
-=>
-2
-
-(run* (q) (evalo '((lambda (x) 2) 1) q))
-=>
-2
-
-(run* (q) (evalo '((lambda (x) x) 1) q))
- => 1
-
-(run 1 (q) (evalo '(lambda (x) x) q))
-=>
-(), ((1 . 1)), ((0 . 0) (1 . 1)), (() . ())
-
-((lambda (x) (x x)) (lambda (x) (x x)))  diverge
-
-
-
-
-(let ((answers (run 6 (q) (evalo '(lambda (x) x) q))))
+(let ((answers (run 100 (q) (evalo '(lambda (x) x) q))))
     (let ((vals (map car answers)))
       (for-each (lambda (table)
                   (for-each (lambda (pr) (printf "~s -> ~s\n" (car pr) (cdr pr))) table)

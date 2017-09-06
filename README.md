@@ -4,15 +4,15 @@ miniKanren prototype of ['Declarative semantics for functional languages: compos
 
 Code written by Ramana Kumar and Will Byrd, after discussion with Jeremy Siek.
 
-The code implements the interesting parts of Figure 2 on page 7 of the paper.
+The code implements the interesting parts of Figure 2 on page 7 of the paper.  See the tests in `tables-subsets.scm` for an idea of what the queries and answers look like.
 
 There are currently two versions of the code:
 
-* tables-subsets.scm, which is the closer of the two implementations to the spirit of Figure 2.  The Subset relation is explicit.
+* `tables-subsets.scm`, which is the closer of the two implementations to the spirit of Figure 2.  The Subset relation is explicit.
 
-* tables.scm, in which the subset relation is implicit.
+* `tables.scm`, in which the subset relation is implicit.
 
-tables-subsets.scm seems to be closer to the spirit of Figure 2.
+`tables-subsets.scm` seems to be closer to the spirit of Figure 2.
 
 Questions/Future Work:
 
