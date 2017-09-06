@@ -83,17 +83,6 @@
          (not-in-envo x rest)))
       ((== '() env)))))
 
-(define proper-listo
-  (lambda (exp env val)
-    (conde
-      ((== '() exp)
-       (== '() val))
-      ((fresh (a d t-a t-d)
-         (== `(,a . ,d) exp)
-         (== `(,t-a . ,t-d) val)
-         (eval-expo a env t-a)
-         (proper-listo d env t-d))))))
-
 (define table-lookupo
   (lambda (x env t)
     (fresh (rest y v)
@@ -134,7 +123,7 @@
   '((_.0)))
 
 (test 'subseto-6
-  (run* (q) (subseto '( 1 () 2) '(() 0 1 2 3)))
+  (run* (q) (subseto '(1 () 2) '(() 0 1 2 3)))
   '())
 
 (test 'subseto-7
