@@ -1,3 +1,4 @@
+(load "pmatch.scm")
 (load "mk/mk.scm")
 (load "mk/test-check.scm")
 
@@ -173,10 +174,21 @@
     (((_.0 . _.0) ((_.1 . _.2))) (num _.0))))
 
 
-
 (let ((answers (run 100 (q) (evalo '(lambda (x) x) q))))
-    (let ((vals (map car answers)))
-      (for-each (lambda (table)
-                  (for-each (lambda (pr) (printf "~s -> ~s\n" (car pr) (cdr pr))) table)
-                  (newline))
-                vals)))
+    (for-each
+      (lambda (value/side-condition)
+        (pmatch value/side-condition
+          [(,table . ,side-condition)
+           (printf "=====================\n")
+           (for-each
+             (lambda (pr)
+               (printf "~s -> ~s\n"
+                       (car pr)
+                       (cdr pr)))
+             table)
+           (unless (null? side-condition)
+             (printf "---------------------\n")
+             (printf "~s\n" side-condition))
+           (printf "=====================\n")
+           (newline)]))
+      answers))
