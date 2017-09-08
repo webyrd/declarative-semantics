@@ -2,7 +2,7 @@
 (load "mk/mk.scm")
 (load "mk/test-check.scm")
 
-;; version that uses explicit subsetness
+;; version with support for enough forms for append
 
 (define evalo
   (lambda (exp val)
@@ -32,13 +32,14 @@
           (eval-expo pexp env pval)))
       ((fresh (lexp lval)
           (== `(null? ,lexp) exp)
+          (not-in-envo 'null? env)
+          (eval-expo lexp env lval)
           (conde
             ((== val #t) (== lval '()))
-            ((== val #f) (fresh (a d) (== lval `(,a . ,d)))))
-          (not-in-envo 'null env)
-          (eval-expo lexp env lval)))
+            ((== val #f) (fresh (a d) (== lval `(,a . ,d)))))))
       ((fresh (e1 e2 e3 bval)
           (== `(if ,e1 ,e2 ,e3) exp)
+          (not-in-envo 'if env)
           (eval-expo e1 env bval)
           (conde
             ((== bval #t) (eval-expo e2 env val))
@@ -49,34 +50,48 @@
          (subseto val lv)))
       ((fresh (rator rand table-val rand-v table a)
          (== `(,rator ,rand) exp)
-         (eval-expo rand env rand-v)
+         (eval-expo rator env `(table . ,table))
          (table-lookupo a table table-val)
-         (eval-expo rator env table)
+         (eval-expo rand env rand-v)
          (subseto a rand-v)
          (subseto val table-val)))
-      ((fresh (x body)
+      ((fresh (x body table-list)
          (== `(lambda (,x) ,body) exp)
+         (== `(table . ,table-list) val)
          (symbolo x)
          (not-in-envo 'lambda env)
-         (table-all x body env val))))))
+         (table-all x body env table-list))))))
 
 (define subseto
   (lambda (s1 s2)
     (conde
       ((numbero s1) (numbero s2) (== s1 s2))
-      ((== '() s1)
-       (conde
-         ((== '() s2))
-         ((fresh (h t)
-            (== `(,h . ,t) s2)))))
+      ((fresh (l1 l2)
+          (== s1 `(table . ,l1))
+          (== s2 `(table . ,l2))
+          (list-subseto l1 l2)))
+      ((== s1 s2) (listo s1)))))
+
+(define list-subseto
+  (lambda (s1 s2)
+    (conde
+      ((== '() s1))
       ((fresh (h1 h2 t1 t2)
          (== `(,h1 . ,t1) s1)
          (== `(,h2 . ,t2) s2)
          (conde
            ((== h1 h2)
-            (subseto t1 t2))
+            (list-subseto t1 t2))
            ((=/= h1 h2)
-            (subseto s1 t2))))))))
+            (list-subseto s1 t2))))))))
+
+(define listo
+  (lambda (l)
+    (conde
+      ((== l '()))
+      ((fresh (a d)
+          (== l `(,a . ,d))
+          (listo d))))))
 
 ;; should be a constraint that depends on eval-expo
 (define table-all
@@ -148,42 +163,58 @@
 (define a-list '(quote (1 2)))
 (define another-list '(quote (3 4 5)))
 
+(define append-call `((,append-proc ,a-list) ,another-list))
+
+(define append-kont
+  '(lambda (k)
+     (lambda (l1)
+       (lambda (l2)
+         (if (null? l1) l2
+           (cons (car l1) ((k (cdr l1)) l2)))))))
+
+(define kons
+  '(lambda (x)
+     (lambda (y)
+       (cons x y))))
+
+(define kons-1 `(,kons 1))
+
 ;;; tests
 
 (test 'subseto-1
-  (run* (q) (subseto '(1 2) '(1 2 3)))
+  (run* (q) (list-subseto '(1 2) '(1 2 3)))
   '((_.0)))
 
 (test 'subseto-2
-  (run* (q) (subseto '(1 2) '(0 1 2 3)))
+  (run* (q) (list-subseto '(1 2) '(0 1 2 3)))
   '((_.0)))
 
 (test 'subseto-3
-  (run* (q) (subseto '(1 2) '(0 () 1 2 3)))
+  (run* (q) (list-subseto '(1 2) '(0 () 1 2 3)))
   '((_.0)))
 
 (test 'subseto-4
-  (run* (q) (subseto '(() 1 2) '(0 () 1 2 3)))
+  (run* (q) (list-subseto '(() 1 2) '(0 () 1 2 3)))
   '((_.0)))
 
 (test 'subseto-5
-  (run* (q) (subseto '(() 1 2) '(() 0 1 2 3)))
+  (run* (q) (list-subseto '(() 1 2) '(() 0 1 2 3)))
   '((_.0)))
 
 (test 'subseto-6
-  (run* (q) (subseto '(1 () 2) '(() 0 1 2 3)))
+  (run* (q) (list-subseto '(1 () 2) '(() 0 1 2 3)))
   '())
 
 (test 'subseto-7
-  (run* (q) (subseto '(1 () 2) '(() 0 1 2 3)))
+  (run* (q) (list-subseto '(1 () 2) '(() 0 1 2 3)))
   '())
 
 (test 'subseto-8
-  (run* (q) (subseto '() q))
+  (run* (q) (list-subseto '() q))
   '((()) ((_.0 . _.1))))
 
 (test 'subset-9
-  (run* (q) (subseto q '()))
+  (run* (q) (list-subseto q '()))
   '((())))
 
 (test 'evalo-1
@@ -221,21 +252,24 @@
     (((_.0 . _.0) ((_.1 . _.2))) (num _.0))))
 
 
-(let ((answers (run 100 (q) (evalo '(lambda (x) x) q))))
+(define print-answers
+  (lambda (answers)
     (for-each
       (lambda (value/side-condition)
         (pmatch value/side-condition
-          [(,table . ,side-condition)
-           (printf "=====================\n")
-           (for-each
-             (lambda (pr)
-               (printf "~s -> ~s\n"
-                       (car pr)
-                       (cdr pr)))
-             table)
-           (unless (null? side-condition)
-             (printf "---------------------\n")
-             (printf "~s\n" side-condition))
-           (printf "=====================\n")
-           (newline)]))
-      answers))
+                [((table . ,table) . ,side-condition)
+                 (printf "=====================\n")
+                 (for-each
+                   (lambda (pr)
+                     (printf "~s -> ~s\n"
+                             (car pr)
+                             (cdr pr)))
+                   table)
+                 (unless (null? side-condition)
+                   (printf "---------------------\n")
+                   (printf "~s\n" side-condition))
+                 (printf "=====================\n")
+                 (newline)]))
+      answers)))
+
+(print-answers (run 100 (q) (evalo '(lambda (x) x) q)))
