@@ -1,6 +1,8 @@
 # declarative-semantics
 
-miniKanren prototype of ['Declarative semantics for functional languages: compositional, extensional, and elementary'](https://arxiv.org/abs/1707.03762) by Jeremy Siek.
+miniKanren prototype of version v2 of ['Declarative semantics for functional languages: compositional, extensional, and elementary'](https://arxiv.org/abs/1707.03762v2) by Jeremy Siek.
+
+Important:  the code in this repository is from an older version (version v2) of Jeremy's paper.  The latest version of the preprint can be found here ['Declarative semantics for functional languages: compositional, extensional, and elementary'](https://arxiv.org/abs/1707.03762) but is quite different from version v2.  For example, figure 2 from version 2 is no longer in the latest versuion of the paper, as of 14 March 02018.
 
 Code written by Ramana Kumar, Tim Zakian, and Will Byrd, after discussion with Jeremy Siek.
 
