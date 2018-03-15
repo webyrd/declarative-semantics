@@ -273,3 +273,43 @@
       answers)))
 
 (print-answers (run 100 (q) (evalo '(lambda (x) x) q)))
+
+;; examples from the bottom of page 5
+
+(test 'page-5-1
+  (let ((t0 '(table . ((1 . 2))))
+        (t1 '(table . ((0 . 1) (1 . 2)))))
+    (run 1 (q)
+      (evalo '(lambda (x) x) `(table . ((,t0 . ,t0) (,t1 . ,t1))))))
+  '((_.0)))
+
+(test 'page-5-2
+  (let ((t0 '(table . ((1 . 2))))
+        (t1 '(table . ((0 . 1) (1 . 2)))))
+    (run 1 (q)
+      (evalo '(lambda (x) x) `(table . ((,t0 . ,t1))))))
+  '())
+
+(test 'page-5-3
+  (let ((t0 '(table . ((1 . 2))))
+        (t1 '(table . ((0 . 1) (1 . 2)))))
+    (run 1 (q)
+      (evalo '(lambda (x) x) `(table . ((,t1 . ,t0))))))
+  '((_.0)))
+
+
+;; example from top of page 6
+
+(test 'page-6-1
+  (let ((t3 '(table . (((table . ()) . 1)))))
+    (run 1 (q)
+      (evalo '(lambda (f) (f f)) `(table . ((,t3 . 1))))))
+  '((_.0)))
+
+
+;; example from the bottom of page 7
+
+(test 'page-7-1
+  (run 1 (q)
+    (evalo '(lambda (y) (lambda (x) x)) `(table . ((1 . (table . ())) (1 . (table . ((0 . 0)))) (1 . (table . ((8 . 8) (5 . 5))))))))
+  '((_.0)))
