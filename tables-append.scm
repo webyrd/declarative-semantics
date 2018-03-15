@@ -151,14 +151,14 @@
      (lambda (x)
        ((! !) x))))
 
-(define append
+(define append-defn
  '(lambda (!)
     (lambda (l1)
       (lambda (l2)
         (if (null? l1) l2
           (cons (car l1) (((! !) (cdr l1)) l2)))))))
 
-(define append-proc `(,rec ,append))
+(define append-proc `(,rec ,append-defn))
 
 (define a-list '(quote (1 2)))
 (define another-list '(quote (3 4 5)))
