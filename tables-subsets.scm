@@ -192,3 +192,44 @@
            (printf "=====================\n")
            (newline)]))
       answers))
+
+
+;; examples from the bottom of page 5
+
+(test 'page-5-1
+  (let ((t0 '((1 . 2)))
+        (t1 '((0 . 1) (1 . 2))))
+    (run 1 (q)
+      (evalo '(lambda (x) x) `((,t0 . ,t0) (,t1 . ,t1)))))
+  '((_.0)))
+
+(test 'page-5-2
+  (let ((t0 '((1 . 2)))
+        (t1 '((0 . 1) (1 . 2))))
+    (run 1 (q)
+      (evalo '(lambda (x) x) `((,t0 . ,t1)))))
+  '())
+
+(test 'page-5-3
+  (let ((t0 '((1 . 2)))
+        (t1 '((0 . 1) (1 . 2))))
+    (run 1 (q)
+      (evalo '(lambda (x) x) `((,t1 . ,t0)))))
+  '((_.0)))
+
+
+;; example from top of page 6
+
+(test 'page-6-1
+  (let ((t3 '((() . 1))))
+    (run 1 (q)
+      (evalo '(lambda (f) (f f)) `((,t3 . 1)))))
+  '((_.0)))
+
+
+;; example from the bottom of page 7
+
+(test 'page-7-1
+  (run 1 (q)
+    (evalo '(lambda (y) (lambda (x) x)) `((1 . ()) (1 . ((0 . 0))) (1 . ((8 . 8) (5 . 5))))))
+  '((_.0)))
