@@ -75,7 +75,11 @@
 (define list-subseto
   (lambda (s1 s2)
     (conde
-      ((== '() s1))
+      ((== '() s1)
+       (conde
+         ((== '() s2))
+         ((fresh (h t)
+            (== `(,h . ,t) s2)))))
       ((fresh (h1 h2 t1 t2)
          (== `(,h1 . ,t1) s1)
          (== `(,h2 . ,t2) s2)

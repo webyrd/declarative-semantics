@@ -19,7 +19,7 @@
       ((fresh (rator rand table-val rand-v table a)
          (== `(,rator ,rand) exp)
          (eval-expo rand env rand-v)
-         (table-lookupo a table table-val)
+         (lookupo a table table-val)
          (eval-expo rator env table)
          (subseto a rand-v)
          (subseto val table-val)))
@@ -56,9 +56,9 @@
          ;; table extension, and enforcing setness, needs to be lazy
          (== `((,key . ,value) . ,rest) table)
 
-         ;; keep setness -- make lazy
+         ;; keep setness -- ideally would make lazy
          ;; also need to ignore order to make it set-like
-;         (not-in-tableo key rest)
+         (not-in-tableo `(,key . ,value) rest)
 
          ;; intent of this entire relation/constraint
          ;; every pair <key,value> in table satisfies this:
@@ -67,13 +67,13 @@
          (table-all x body env rest))))))
 
 (define not-in-tableo
-  (lambda (x env)
+  (lambda (entry table)
     (conde
-      ((== '() env))
-      ((fresh (y v rest)
-         (== `((,y . ,v) . ,rest) env)
-         (=/= y x)
-         (not-in-tableo x rest))))))
+      ((== '() table))
+      ((fresh (e rest)
+         (== `(,e . ,rest) table)
+         (=/= e entry)
+         (not-in-tableo entry rest))))))
 
 (define not-in-envo
   (lambda (x env)
@@ -83,14 +83,6 @@
          (=/= y x)
          (not-in-envo x rest)))
       ((== '() env)))))
-
-(define table-lookupo
-  (lambda (x env t)
-    (fresh (rest y v)
-      (== `((,y . ,v) . ,rest) env)
-      (conde
-        ((== y x) (== v t))
-        ((=/= y x) (table-lookupo x rest t))))))
 
 (define lookupo
   (lambda (x env t)
@@ -161,7 +153,7 @@
   '((1) (1) (1) (1) (1) (1) (1) (1) (1) (1)))
 
 (test 'evalo-6
-  (run 10 (q) (evalo '(lambda (x) x) q))
+  (run 20 (q) (evalo '(lambda (x) x) q))
   '((())
     (((_.0 . _.0)) (num _.0))
     (((())))
@@ -171,7 +163,18 @@
     ((((_.0 . _.1) _.0 . _.1)) (num _.1))
     (((()) (_.0 . _.0)) (num _.0))
     (((_.0 . _.0) (_.1 . _.1) (_.2 . _.2)) (num _.0 _.1 _.2))
-    (((_.0 . _.0) ((_.1 . _.2))) (num _.0))))
+    (((_.0 . _.0) ((_.1 . _.2))) (num _.0))
+    (((()) (())))
+    (((_.0 . _.0) (_.1 . _.1) (())) (num _.0 _.1))
+    (((_.0 . _.0) ((_.1 . _.2) _.1 . _.2)) (num _.0 _.2))
+    ((((_.0 . _.1)) (_.2 . _.2)) (num _.2))
+    (((_.0 . _.0) (()) (_.1 . _.1)) (num _.0 _.1))
+    (((()) (_.0 . _.0) (_.1 . _.1)) (num _.0 _.1))
+    ((((_.0) _.0)))
+    (((()) ((_.0 . _.1))))
+    (((_.0 . _.0) (_.1 . _.1) (_.2 . _.2) (_.3 . _.3))
+     (num _.0 _.1 _.2 _.3))
+    (((_.0 . _.0) (_.1 . _.1) ((_.2 . _.3))) (num _.0 _.1))))
 
 
 (let ((answers (run 100 (q) (evalo '(lambda (x) x) q))))
